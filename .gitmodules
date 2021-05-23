@@ -1,0 +1,3 @@
+[submodule "hx711py"]
+	path = hx711py
+	url = https://github.com/tatobari/hx711py
