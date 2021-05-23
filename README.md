@@ -1,5 +1,5 @@
 
-Ensure Python 3, virtualenv and pip are insatlled.
+Ensure Python 3, virtualenv and pip are installed.
 
 
 
@@ -11,4 +11,11 @@ source venv/bin/activate
 python --version
 pip --version
 pip install -r requirements.txt 
-```https://github.com/tatobari/hx711py
+```
+
+## Submodule
+
+```
+https://github.com/tatobari/hx711py
+git submodule add https://github.com/tatobari/hx711py
+```
