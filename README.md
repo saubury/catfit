@@ -19,3 +19,8 @@ pip install -r requirements.txt
 https://github.com/tatobari/hx711py
 git submodule add https://github.com/tatobari/hx711py
 ```
+
+```
+ git submodule update --init --recursive
+ ```
+ 
