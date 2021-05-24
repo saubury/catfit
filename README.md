@@ -24,3 +24,24 @@ git submodule add https://github.com/tatobari/hx711py
  git submodule update --init --recursive
  ```
  
+
+## Miscellaneous
+
+Setup
+
+```
+sudo cp catfit.service /lib/systemd/system
+
+sudo systemctl daemon-reload
+sudo systemctl enable catfit.service
+sudo systemctl start catfit.service
+```
+
+General checks for determining what's going on with the service.
+
+```
+sudo systemctl status catfit.service
+sudo journalctl -u catfit.service -b
+sudo journalctl -u catfit.service -b -f
+ps -ef | grep catfit | grep -v
+```
