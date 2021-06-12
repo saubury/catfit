@@ -11,10 +11,12 @@ from hx711 import HX711
 
 # Settings
 demo_file_path = 'example.out'
+output_file='/home/pi/git/catfit/catfit.out'
 cat_weight_min = 4500
 cat_weight_max = 6100
 referenceUnit_A = 22.839
 referenceUnit_B = -1092.8
+cat_depart_threshold_sec = 10
 GPIO_A_DT = 17
 GPIO_A_SCK = 27
 GPIO_B_DT = 5
@@ -23,15 +25,16 @@ GPIO_B_SCK = 6
 # Globals
 cat_was_on_scale = False
 cat_entered_scale_date = datetime.now()
+cat_lastseen_date = datetime.now()
 food_start_weight = 0
 cat_weight_sample_total = 0
 cat_weight_sample = 0
 
 
 def cleanAndExit():
-    print("Cleaning...")
+    do_print("Cleaning...")
     GPIO.cleanup()
-    print("Bye!")
+    do_print("Bye!")
     sys.exit()
 
 def do_scale():
@@ -44,12 +47,12 @@ def do_scale():
     hx_a.set_reference_unit(referenceUnit_A)
     hx_a.reset()
     hx_a.tare()
-    print("Tare A done! Add weight now...", flush=True)
+    do_print("Tare A done! Add weight now...")
 
     hx_b.set_reference_unit(referenceUnit_B)
     hx_b.reset()
     # hx_b.tare()
-    print("Tare B done! Add weight now...", flush=True)
+    do_print("Tare B done! Add weight now...")
 
     while True:
         try:
@@ -58,7 +61,7 @@ def do_scale():
 
             # if (val_a > threshHold ):
             now = datetime.now()
-            # print('{}    Cat:{:,.0f}  Food:{:,.0f}'.format(now.strftime("%d/%m/%Y %H:%M:%S"), val_cat, val_food), flush=True)
+            # print('{}    Cat:{:,.0f}  Food:{:,.0f}'.format(now.strftime("%d/%m/%Y %H:%M:%S"), val_cat, val_food))
             do_update(now, val_cat, val_food)
 
             hx_a.power_down()
@@ -78,6 +81,7 @@ def do_update(event_date, cat_weight, food_weight):
     global food_start_weight
     global cat_weight_sample_total
     global cat_weight_sample 
+    global cat_lastseen_date
 
     if cat_weight_min <= cat_weight <= cat_weight_max:
         # Cat is on scale
@@ -87,20 +91,23 @@ def do_update(event_date, cat_weight, food_weight):
             food_start_weight = food_weight
 
         cat_was_on_scale = True
+        cat_lastseen_date = event_date
         cat_weight_sample_total = cat_weight_sample_total + cat_weight
         cat_weight_sample = cat_weight_sample + 1
     else:
         # Cat is not on scale
+        sec_since_cat_seen = (event_date - cat_lastseen_date).total_seconds()
         if ( cat_was_on_scale ):
             # Cat just left
+            do_print('   cat left - duration {:,.0f}     RAW Duration:{}'.format(sec_since_cat_seen, event_date-cat_lastseen_date))
             cat_weight_avg = cat_weight_sample_total / cat_weight_sample
             # print('cat_weight_avg:{:,.0f}  cat_weight_sample_total:{} cat_weight_samples:{}'.format(cat_weight_avg, cat_weight_sample_total, cat_weight_sample))
             cat_weight_sample_total = 0
             cat_weight_sample = 0
+            cat_was_on_scale = False
+            do_print('Cat departed,  From:{} To:{} FoodStart:{:,.0f} FoodEnd:{:,.0f} Duration:{} cat_weight_avg:{:,.0f}'.format(cat_entered_scale_date, event_date, food_start_weight, food_weight, event_date-cat_entered_scale_date, cat_weight_avg))
 
-            print('Cat departed,  From:{} To:{} FoodStart:{:,.0f} FoodEnd:{:,.0f} Duration:{} cat_weight_avg:{:,.0f}'.format(cat_entered_scale_date, event_date, food_start_weight, food_weight, event_date-cat_entered_scale_date, cat_weight_avg), flush=True)
-
-        cat_was_on_scale = False
+        
 
 def do_filedemo():
     with open(demo_file_path) as file_handle:
@@ -114,6 +121,14 @@ def do_filedemo():
             do_update(event_date, int(cat_weight), int(food_weight))
             line = file_handle.readline()
 
+
+def do_print(text):
+    now = datetime.now()
+    with open(output_file, "a") as file1:
+        file1.write( '{}   {}\n'.format(now.strftime("%d/%m/%Y %H:%M:%S"), text) )
+
+    # Now to stdout    
+    print( '{}   {}'.format(now.strftime("%d/%m/%Y %H:%M:%S"), text), flush=True )
 
 def main():
     parser = argparse.ArgumentParser(description='Cat monitor')
