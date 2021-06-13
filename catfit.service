@@ -6,7 +6,7 @@ After=multi-user.target
 User=pi
 Group=pi
 WorkingDirectory=/home/pi/git/catfit
-ExecStart=/usr/bin/python3 /home/pi/git/catfit/catfit.py
+ExecStart=/home/pi/git/catfit/venv/bin/python /home/pi/git/catfit/catfit.py
 
 [Install]
 WantedBy=multi-user.target

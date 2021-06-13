@@ -4,6 +4,11 @@ import time
 import sys
 import RPi.GPIO as GPIO
 from datetime import datetime
+from confluent_kafka import Producer, KafkaError
+import json
+import config
+
+
 
 sys.path.insert(1, './hx711py')
 from hx711 import HX711
@@ -29,6 +34,17 @@ cat_lastseen_date = datetime.now()
 food_start_weight = 0
 cat_weight_sample_total = 0
 cat_weight_sample = 0
+
+# Kafka Producer
+producer_conf = {
+'bootstrap.servers': config.bootstrap_servers, 
+'sasl.username': config.sasl_username, 
+'sasl.password': config.sasl_password,
+'security.protocol': 'SASL_SSL', 
+'sasl.mechanisms': 'PLAIN'
+}
+
+producer = Producer(producer_conf)
 
 
 def cleanAndExit():
@@ -63,6 +79,7 @@ def do_scale():
             now = datetime.now()
             # print('{}    Cat:{:,.0f}  Food:{:,.0f}'.format(now.strftime("%d/%m/%Y %H:%M:%S"), val_cat, val_food))
             do_update(now, val_cat, val_food)
+            do_kafka_produce(now, val_cat, val_food)
 
             hx_a.power_down()
             hx_a.power_up()
@@ -72,6 +89,24 @@ def do_scale():
 
         except (KeyboardInterrupt, SystemExit):
             cleanAndExit()
+
+
+def do_kafka_produce(event_date, cat_weight, food_weight):
+    if cat_weight_min <= cat_weight <= cat_weight_max:
+    # Cat is on scale
+
+        producer.produce('debug_log',  value=json.dumps({"event_date": event_date.strftime("%d/%m/%Y %H:%M:%S"), "cat_weight": cat_weight, "food_weight": food_weight }))
+        producer.poll(0)
+        producer.flush()
+
+        producer.produce('cat_weight',  value=json.dumps({"event_date": event_date.strftime("%d/%m/%Y %H:%M:%S"), "cat_weight": cat_weight }))
+        producer.poll(0)
+        producer.flush()
+
+        producer.produce('food_weight',  value=json.dumps({"event_date": event_date.strftime("%d/%m/%Y %H:%M:%S"), "food_weight": food_weight }))
+        producer.poll(0)
+        producer.flush()
+
 
 
 

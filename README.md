@@ -43,7 +43,7 @@ General checks for determining what's going on with the service.
 sudo systemctl status catfit.service
 sudo journalctl -u catfit.service -b
 sudo journalctl -u catfit.service -b -f
-ps -ef | grep catfit | grep -v
+ps -ef | grep catfit | grep -v grep
 ```
 
 ## Python
@@ -58,4 +58,15 @@ source venv/bin/activate
 python --version
 pip --version
 pip install -r requirements.txt
+```
+
+
+## Fixes for Raspberry Pi
+
+When running ` pip install -r requirements.txt` got the error `Running setup.py install for confluent-kafka ... error`
+
+https://github.com/edenhill/librdkafka#build-from-source
+
+```
+sudo apt remove librdkafka*
 ```
