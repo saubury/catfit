@@ -45,3 +45,17 @@ sudo journalctl -u catfit.service -b
 sudo journalctl -u catfit.service -b -f
 ps -ef | grep catfit | grep -v
 ```
+
+## Python
+
+Ensure Python 3, `virtualenv` and `pip` are insatlled.
+
+```
+which python3
+
+virtualenv -p `which python3` venv
+source venv/bin/activate
+python --version
+pip --version
+pip install -r requirements.txt
+```
