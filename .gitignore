@@ -3,3 +3,4 @@ python/config.py
 python/examples/*
 config.py
 __pycache__/config.cpython-37.pyc
+temp/*

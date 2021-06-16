@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
 
     # a Python object (dict):
-    x = {"name": "Simon", "age": 40, "city": "Syd" }
+    x = {"name": "Simon A", "age": 20, "city": "Sydney" }
 
     record_value = json.dumps(x)
     producer.produce(topic,  value=record_value)
