@@ -197,8 +197,10 @@ def do_photo_inner(tweet_it=False):
     print('Photo - filename {}'.format(image_base_file))
 
     # Camera 1
-    with PiCamera() as camera:
+    with PiCamera(resolution=(1280, 720)) as camera:
         # camera = PiCamera()
+        camera.iso = 1600
+        time.sleep(2)
         camera.capture(image_file_a)
 
     # Camera 2
