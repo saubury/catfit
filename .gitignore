@@ -5,3 +5,4 @@ config.py
 __pycache__/config.cpython-37.pyc
 temp/*
 twitter/auth.py
+photos/*

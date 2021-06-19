@@ -7,8 +7,10 @@ from datetime import datetime
 from confluent_kafka import Producer, KafkaError
 import json
 import config
-
-
+from picamera import PiCamera
+from twython import Twython
+import random
+import os
 
 sys.path.insert(1, './hx711py')
 from hx711 import HX711
@@ -17,6 +19,7 @@ from hx711 import HX711
 # Settings
 demo_file_path = 'example.out'
 output_file='/home/pi/git/catfit/catfit.out'
+image_dir = '/home/pi/git/catfit/photos'
 cat_weight_min = 4500
 cat_weight_max = 6100
 referenceUnit_A = 22.839
@@ -43,6 +46,14 @@ producer_conf = {
 'security.protocol': 'SASL_SSL', 
 'sasl.mechanisms': 'PLAIN'
 }
+
+# Twitter
+twitter = Twython(
+    config.consumer_key,
+    config.consumer_secret,
+    config.access_token,
+    config.access_token_secret
+)
 
 producer = Producer(producer_conf)
 
@@ -165,14 +176,52 @@ def do_print(text):
     # Now to stdout    
     print( '{}   {}'.format(now.strftime("%d/%m/%Y %H:%M:%S"), text), flush=True )
 
+def do_photo(tweet_it=False):
+    now = datetime.now()
+    image_base_file = '{}/{}'.format(image_dir, now.strftime("%Y%m%d_%H%M%S"))
+    image_file_a = '{}_a.jpg'.format(image_base_file)
+    image_file_b = '{}_b.jpg'.format(image_base_file)
+
+    # Camera 1
+    camera = PiCamera()
+    camera.capture(image_file_a)
+
+    # Camera 2
+    os.system('fswebcam -r 1280x720 --no-banner {}'.format(image_file_b))
+
+def do_tweet(file_image):
+    messages = [
+        "Hello World",
+        "Hi there",
+        "What's up?",
+        "How's it going?",
+        "Have you been here before?",
+        "I'm hungry",
+        "Time for a nap",
+        "Yes, I'm eating",
+    ]
+
+    message = random.choice(messages)
+    with open(file_image, 'rb') as image:
+        response = twitter.upload_media(media=image)
+        media_id = [response['media_id']]
+        twitter.update_status(status=message, media_ids=media_id)
+        print("Tweeted: " + message)
+
 def main():
     parser = argparse.ArgumentParser(description='Cat monitor')
     parser.add_argument('--scale', help='capture values from scales', action='store_true')
+    parser.add_argument('--photo', help='take a photo', action='store_true')
+    parser.add_argument('--tweet', help='send a test tweet', action='store_true')
     parser.add_argument('--filedemo', help='run a demonstration from file', action='store_true')
     args = parser.parse_args()
 
     if args.filedemo:
         do_filedemo()
+    elif args.photo:
+        do_photo()
+    elif args.tweet:
+        do_photo(tweet_it=True)
     else:
         do_scale()        
     # else:
