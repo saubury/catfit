@@ -34,6 +34,7 @@ GPIO_B_SCK = 6
 cat_was_on_scale = False
 cat_entered_scale_date = datetime.now()
 cat_lastseen_date = datetime.now()
+last_photo_date = datetime.now()
 food_start_weight = 0
 cat_weight_sample_total = 0
 cat_weight_sample = 0
@@ -90,7 +91,7 @@ def do_scale():
             now = datetime.now()
             # print('{}    Cat:{:,.0f}  Food:{:,.0f}'.format(now.strftime("%d/%m/%Y %H:%M:%S"), val_cat, val_food))
             do_update(now, val_cat, val_food)
-            do_kafka_produce(now, val_cat, val_food)
+            # do_kafka_produce(now, val_cat, val_food)
 
             hx_a.power_down()
             hx_a.power_up()
@@ -140,6 +141,7 @@ def do_update(event_date, cat_weight, food_weight):
         cat_lastseen_date = event_date
         cat_weight_sample_total = cat_weight_sample_total + cat_weight
         cat_weight_sample = cat_weight_sample + 1
+        do_photo()
     else:
         # Cat is not on scale
         sec_since_cat_seen = (event_date - cat_lastseen_date).total_seconds()
@@ -177,17 +179,33 @@ def do_print(text):
     print( '{}   {}'.format(now.strftime("%d/%m/%Y %H:%M:%S"), text), flush=True )
 
 def do_photo(tweet_it=False):
+    global last_photo_date
+    now = datetime.now()
+    sec_since_last_photo = (now - last_photo_date).total_seconds()
+
+    # Protect against too many photos taken over a short length of time
+    if (sec_since_last_photo > 10):
+        last_photo_date = now
+        do_photo_inner(tweet_it)
+
+def do_photo_inner(tweet_it=False):
     now = datetime.now()
     image_base_file = '{}/{}'.format(image_dir, now.strftime("%Y%m%d_%H%M%S"))
     image_file_a = '{}_a.jpg'.format(image_base_file)
     image_file_b = '{}_b.jpg'.format(image_base_file)
 
+    print('Photo - filename {}'.format(image_base_file))
+
     # Camera 1
-    camera = PiCamera()
-    camera.capture(image_file_a)
+    with PiCamera() as camera:
+        # camera = PiCamera()
+        camera.capture(image_file_a)
 
     # Camera 2
-    os.system('fswebcam -r 1280x720 --no-banner {}'.format(image_file_b))
+    os.system('fswebcam --resolution 1280x720 --no-banner --quiet {}'.format(image_file_b))
+
+    if tweet_it:
+        do_tweet(image_file_a)
 
 def do_tweet(file_image):
     messages = [
@@ -219,9 +237,9 @@ def main():
     if args.filedemo:
         do_filedemo()
     elif args.photo:
-        do_photo()
+        do_photo_inner()
     elif args.tweet:
-        do_photo(tweet_it=True)
+        do_photo_inner(tweet_it=True)
     else:
         do_scale()        
     # else:
