@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import random
 
 
@@ -25,7 +25,7 @@ def apply_overlay(background_image, front_file, at_top, at_left):
     frontImage = frontImage.convert('RGBA')
 
     width, height = frontImage.size
-    target_width = 800
+    target_width = 600
     target_height = int(target_width * (height/width))
     frontImage = frontImage.resize((target_width, target_height))
 
@@ -48,7 +48,7 @@ def get_concat_h(im1, im2):
     dst.paste(im2, (im1.width, im1.height))
     return dst
 
-def create_image(side_image, top_image, final_image):
+def create_image(side_image, top_image, final_image, imgtext):
     thisImage = Image.open(side_image)
 
     # Convert image to RGBA
@@ -56,12 +56,15 @@ def create_image(side_image, top_image, final_image):
     thisImage = get_concat_h(thisImage, Image.open(top_image))
 
     thisImage = apply_overlay(thisImage, random.choice(overlays), True, False)
-    thisImage = apply_overlay(thisImage, random.choice(overlays), False, True)
-    thisImage = apply_overlay(thisImage, 'assets/fixedbanner.png', False, False)
+    # thisImage = apply_overlay(thisImage, random.choice(overlays), False, True)
+    thisImage = apply_overlay(thisImage, 'assets/fixedbanner.png', False, True)
+
+    d = ImageDraw.Draw(thisImage)
+    d.multiline_text((100,800), imgtext, font=ImageFont.truetype("/mnt/e/Windows/Fonts/tahoma.ttf", 90), fill=(255,255,255,255))
 
     # Save this image
-    thisImage.save(final_image, format='jpg')
+    thisImage.save(final_image, format='jpeg')
 
 
 if __name__ == '__main__':
-    create_image('photos/20210619_174034_a.jpg', 'photos/20210619_174034_b.jpg',  'testnew.jpg')
+    create_image('photos/20210620_082150_a.jpg', 'photos/20210620_082150_b.jpg',  'testnew.jpg', 'Just ate 18g of food\nover 90 seconds')
