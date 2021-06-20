@@ -157,9 +157,10 @@ def do_update(event_date, cat_weight, food_weight):
             cat_weight_sample = 0
             cat_was_on_scale = False
             eating_duration_sec = (event_date-cat_entered_scale_date).total_seconds()
-            eaten_amount = food_start_weight = food_weight
+            eaten_amount = food_start_weight - food_weight
             do_print('Cat departed,  From:{} To:{} FoodStart:{:,.0f} FoodEnd:{:,.0f} Duration:{} cat_weight_avg:{:,.0f} Seconds:{} Eaten:{}'.format(cat_entered_scale_date, event_date, food_start_weight, food_weight, event_date-cat_entered_scale_date, cat_weight_avg, eating_duration_sec, eaten_amount))
-            create_image('{}_a.jpg'.format(image_base_file), '{}_b.jpg'.format(image_base_file),  '{}_t.jpg'.format(image_base_file), 'Just ate {}g of food\nover {} seconds'.format(eating_duration_sec, eaten_amount))
+            if image_base_file:
+                create_image('{}_a.jpg'.format(image_base_file), '{}_b.jpg'.format(image_base_file),  '{}_t.jpg'.format(image_base_file), 'Just ate {:,.0f}g of food\nover {:,.0f} seconds'.format(eaten_amount, eating_duration_sec))
 
         
 

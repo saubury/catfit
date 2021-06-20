@@ -60,7 +60,7 @@ def create_image(side_image, top_image, final_image, imgtext):
     thisImage = apply_overlay(thisImage, 'assets/fixedbanner.png', False, True)
 
     d = ImageDraw.Draw(thisImage)
-    d.multiline_text((100,800), imgtext, font=ImageFont.truetype("/mnt/e/Windows/Fonts/tahoma.ttf", 90), fill=(255,255,255,255))
+    d.multiline_text((100,800), imgtext, font=ImageFont.truetype("/usr/share/fonts/truetype/ttf-bitstream-vera/Vera.ttf", 90), fill=(255,255,255,255))
 
     # Save this image
     thisImage.save(final_image, format='jpeg')
