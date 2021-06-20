@@ -1,7 +1,7 @@
 from PIL import Image
 import random
 
-final_image = 'new.png'
+
 
 overlays = [
     'assets/cat.png', 
@@ -48,7 +48,7 @@ def get_concat_h(im1, im2):
     dst.paste(im2, (im1.width, im1.height))
     return dst
 
-def create_image(side_image, top_image):
+def create_image(side_image, top_image, final_image):
     thisImage = Image.open(side_image)
 
     # Convert image to RGBA
@@ -60,8 +60,8 @@ def create_image(side_image, top_image):
     thisImage = apply_overlay(thisImage, 'assets/fixedbanner.png', False, False)
 
     # Save this image
-    thisImage.save(final_image, format='png')
+    thisImage.save(final_image, format='jpg')
 
 
 if __name__ == '__main__':
-    create_image('photos/20210619_174034_a.jpg', 'photos/20210619_174034_b.jpg')
+    create_image('photos/20210619_174034_a.jpg', 'photos/20210619_174034_b.jpg',  'testnew.jpg')

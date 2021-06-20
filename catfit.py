@@ -38,6 +38,7 @@ last_photo_date = datetime.now()
 food_start_weight = 0
 cat_weight_sample_total = 0
 cat_weight_sample = 0
+image_base_file = ''
 
 # Kafka Producer
 producer_conf = {
@@ -153,7 +154,9 @@ def do_update(event_date, cat_weight, food_weight):
             cat_weight_sample_total = 0
             cat_weight_sample = 0
             cat_was_on_scale = False
-            do_print('Cat departed,  From:{} To:{} FoodStart:{:,.0f} FoodEnd:{:,.0f} Duration:{} cat_weight_avg:{:,.0f}'.format(cat_entered_scale_date, event_date, food_start_weight, food_weight, event_date-cat_entered_scale_date, cat_weight_avg))
+            eating_duration_sec = (event_date-cat_entered_scale_date).total_seconds()
+            eaten_amount = food_start_weight = food_weight
+            do_print('Cat departed,  From:{} To:{} FoodStart:{:,.0f} FoodEnd:{:,.0f} Duration:{} cat_weight_avg:{:,.0f} Seconds:{} Eaten:{}'.format(cat_entered_scale_date, event_date, food_start_weight, food_weight, event_date-cat_entered_scale_date, cat_weight_avg, eating_duration_sec, eaten_amount))
 
         
 
@@ -189,6 +192,7 @@ def do_photo(tweet_it=False):
         do_photo_inner(tweet_it)
 
 def do_photo_inner(tweet_it=False):
+    global image_base_file
     now = datetime.now()
     image_base_file = '{}/{}'.format(image_dir, now.strftime("%Y%m%d_%H%M%S"))
     image_file_a = '{}_a.jpg'.format(image_base_file)
