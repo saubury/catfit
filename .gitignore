@@ -9,3 +9,4 @@ photos/*
 venv/*
 new.png
 opencv/*
+__pycache__/*
