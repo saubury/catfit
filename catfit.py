@@ -40,7 +40,7 @@ last_photo_date = datetime.now()
 food_start_weight = 0
 cat_weight_sample_total = 0
 cat_weight_sample = 0
-image_base_file = ''
+pict_base_list = []
 
 # Kafka Producer
 producer_conf = {
@@ -159,10 +159,54 @@ def do_update(event_date, cat_weight, food_weight):
             eating_duration_sec = (event_date-cat_entered_scale_date).total_seconds()
             eaten_amount = food_start_weight - food_weight
             do_print('Cat departed,  From:{} To:{} FoodStart:{:,.0f} FoodEnd:{:,.0f} Duration:{} cat_weight_avg:{:,.0f} Seconds:{} Eaten:{}'.format(cat_entered_scale_date, event_date, food_start_weight, food_weight, event_date-cat_entered_scale_date, cat_weight_avg, eating_duration_sec, eaten_amount))
-            if image_base_file:
-                create_image('{}_a.jpg'.format(image_base_file), '{}_b.jpg'.format(image_base_file),  '{}_t.jpg'.format(image_base_file), 'Just ate {:,.0f}g of food\nover {:,.0f} seconds'.format(eaten_amount, eating_duration_sec))
+            do_image_and_tweet(eaten_amount, eating_duration_sec, cat_weight_avg)
 
-        
+def do_image_and_tweet(eaten_amount, eating_duration_sec, cat_weight_avg):
+    global pict_base_list
+
+    messages = [
+        "Hello World.",
+        "Hi there.",
+        "What's up?",
+        "How's it going?",
+        "Yes, I may be over sharing",
+        "I'm hungry.",
+        "Time for a nap.",
+        "Yes, I'm eating.",
+    ]
+
+    if eaten_amount <= 0:
+        # protect against negative values
+        do_print('Negative food - skipped')
+        return
+
+    if len(pict_base_list) == 0:
+        # protect against no photo taken
+        do_print('No photo - skipped')
+        return
+
+    if len(pict_base_list) == 1:
+        # Only one photo; use it
+        image_base_file = pict_base_list[0]
+        do_print('Only one photo - using {}'.format(image_base_file))
+    else:
+        # Multiple photos; pick the 2nd last one
+        image_base_file = pict_base_list[-2]
+        do_print('Multiple photos - using {}'.format(image_base_file))
+
+    # reset the list
+    pict_base_list = []    
+
+    # all good - now tweet
+    tweet_image = '{}_t.jpg'.format(image_base_file)
+    create_image('{}_a.jpg'.format(image_base_file), 
+    '{}_b.jpg'.format(image_base_file),  
+    tweet_image, 
+    'Snowy ate {:,.0f}g of food\nover {:,.0f} seconds'.format(eaten_amount, eating_duration_sec))
+
+    rand_message = random.choice(messages)
+    tweet_message = '{} I just ate {:,.0f}g of food, over {:,.0f} seconds. I now weigh {:,.0f}'.format(rand_message, eaten_amount, eating_duration_sec, cat_weight_avg)
+    do_tweet(tweet_message, tweet_image)
 
 def do_filedemo():
     with open(demo_file_path) as file_handle:
@@ -196,11 +240,12 @@ def do_photo(tweet_it=False):
         do_photo_inner(tweet_it)
 
 def do_photo_inner(tweet_it=False):
-    global image_base_file
+    global pict_base_list
     now = datetime.now()
     image_base_file = '{}/{}'.format(image_dir, now.strftime("%Y%m%d_%H%M%S"))
     image_file_a = '{}_a.jpg'.format(image_base_file)
     image_file_b = '{}_b.jpg'.format(image_base_file)
+    pict_base_list.append(image_base_file)
 
     print('Photo - filename {}'.format(image_base_file))
 
@@ -212,35 +257,20 @@ def do_photo_inner(tweet_it=False):
         camera.capture(image_file_a)
 
     # Camera 2
-    os.system('fswebcam --resolution 1280x720 --no-banner --quiet {}'.format(image_file_b))
+    os.system('fswebcam --palette YUYV --resolution 640x480 --no-banner --quiet {}'.format(image_file_b))
 
-    if tweet_it:
-        do_tweet(image_file_a)
 
-def do_tweet(file_image):
-    messages = [
-        "Hello World",
-        "Hi there",
-        "What's up?",
-        "How's it going?",
-        "Have you been here before?",
-        "I'm hungry",
-        "Time for a nap",
-        "Yes, I'm eating",
-    ]
-
-    message = random.choice(messages)
+def do_tweet(message, file_image):
     with open(file_image, 'rb') as image:
         response = twitter.upload_media(media=image)
         media_id = [response['media_id']]
         twitter.update_status(status=message, media_ids=media_id)
-        print("Tweeted: " + message)
+        do_print("Tweeted: " + message)
 
 def main():
     parser = argparse.ArgumentParser(description='Cat monitor')
     parser.add_argument('--scale', help='capture values from scales', action='store_true')
     parser.add_argument('--photo', help='take a photo', action='store_true')
-    parser.add_argument('--tweet', help='send a test tweet', action='store_true')
     parser.add_argument('--filedemo', help='run a demonstration from file', action='store_true')
     args = parser.parse_args()
 
@@ -248,8 +278,6 @@ def main():
         do_filedemo()
     elif args.photo:
         do_photo_inner()
-    elif args.tweet:
-        do_photo_inner(tweet_it=True)
     else:
         do_scale()        
     # else:
