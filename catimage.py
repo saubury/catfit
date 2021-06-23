@@ -42,18 +42,23 @@ def apply_overlay(background_image, front_file, at_top, at_left):
     background_image.paste(frontImage, (offset_width, offset_height), frontImage)
     return background_image
 
-def get_concat_h(im1, im2):
-    dst = Image.new('RGB', (im1.width + im2.width, im1.height + im2.height))
-    dst.paste(im1, (0, 0))
-    dst.paste(im2, (im1.width, im1.height))
-    return dst
+def diag_concat_images(im1, im2):
+    returnImage = Image.new('RGB', (im1.width + im2.width, im1.height + im2.height))
+
+    # Make a light grey background
+    d = ImageDraw.Draw(returnImage)
+    d.rectangle([(0, 0), (returnImage.width, returnImage.height)], fill ="rgb(40,40,40)")
+
+    returnImage.paste(im1, (0, 0))
+    returnImage.paste(im2, (im1.width, im1.height))
+    return returnImage
 
 def create_image(side_image, top_image, final_image, imgtext):
     thisImage = Image.open(side_image)
 
     # Convert image to RGBA
     thisImage = thisImage.convert('RGBA')
-    thisImage = get_concat_h(thisImage, Image.open(top_image))
+    thisImage = diag_concat_images(thisImage, Image.open(top_image))
 
     thisImage = apply_overlay(thisImage, random.choice(overlays), True, False)
     # thisImage = apply_overlay(thisImage, random.choice(overlays), False, True)
