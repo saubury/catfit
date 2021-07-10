@@ -169,9 +169,12 @@ def do_image_and_tweet(eaten_amount, eating_duration_sec, cat_weight_avg):
         "Hi there.",
         "What's up?",
         "How's it going?",
-        "Yes, I may be over sharing",
+        "Yes, I may be over sharing.",
         "I'm hungry.",
         "Time for a nap.",
+        "Hey.",
+        "Time for an update.",
+        "Tweet much?",
         "Yes, I'm eating.",
     ]
 
@@ -205,7 +208,7 @@ def do_image_and_tweet(eaten_amount, eating_duration_sec, cat_weight_avg):
     'Snowy ate {:,.0f}g of food\nover {:,.0f} seconds'.format(eaten_amount, eating_duration_sec))
 
     rand_message = random.choice(messages)
-    tweet_message = '{} I just ate {:,.0f}g of food, over {:,.0f} seconds. I now weigh {:,.0f}'.format(rand_message, eaten_amount, eating_duration_sec, cat_weight_avg)
+    tweet_message = '{} I just ate {:,.0f}g of food, over {:,.0f} seconds. I now weigh {:,.0f}. {} #snowydata https://link.medium.com/53QclBbWLhb'.format(rand_message, eaten_amount, eating_duration_sec, cat_weight_avg, datetime.now().strftime("%A at %I:%M %p"))
     do_tweet(tweet_message, tweet_image)
 
 def do_filedemo():
