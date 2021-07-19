@@ -10,3 +10,7 @@ venv/*
 new.png
 opencv/*
 __pycache__/*
+kafka/*
+python/*
+twitter/*
+testnew.jpg
