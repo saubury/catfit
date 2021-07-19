@@ -94,7 +94,7 @@ def do_scale():
             now = datetime.now()
             # print('{}    Cat:{:,.0f}  Food:{:,.0f}'.format(now.strftime("%d/%m/%Y %H:%M:%S"), val_cat, val_food))
             do_update(now, val_cat, val_food)
-            # do_kafka_produce(now, val_cat, val_food)
+            do_kafka_produce(now, val_cat, val_food)
 
             hx_a.power_down()
             hx_a.power_up()
@@ -183,6 +183,11 @@ def do_image_and_tweet(eaten_amount, eating_duration_sec, cat_weight_avg):
         do_print('Negative food - skipped')
         return
 
+    if eaten_amount > 50:
+        # protect against large values
+        do_print('Seemingly too much food - skipped')
+        return
+
     if len(pict_base_list) == 0:
         # protect against no photo taken
         do_print('No photo - skipped')
@@ -208,7 +213,7 @@ def do_image_and_tweet(eaten_amount, eating_duration_sec, cat_weight_avg):
     'Snowy ate {:,.0f}g of food\nover {:,.0f} seconds'.format(eaten_amount, eating_duration_sec))
 
     rand_message = random.choice(messages)
-    tweet_message = '{} I just ate {:,.0f}g of food, over {:,.0f} seconds. I now weigh {:,.0f}. {} #snowydata https://link.medium.com/53QclBbWLhb'.format(rand_message, eaten_amount, eating_duration_sec, cat_weight_avg, datetime.now().strftime("%A at %I:%M %p"))
+    tweet_message = '{} I just ate {:,.0f}g of food, over {:,.0f} seconds. I now weigh {:,.0f} grams. {} 🔍 #snowydata ✍ https://link.medium.com/53QclBbWLhb'.format(rand_message, eaten_amount, eating_duration_sec, cat_weight_avg, datetime.now().strftime("%A at %I:%M %p"))
     do_tweet(tweet_message, tweet_image)
 
 def do_filedemo():
