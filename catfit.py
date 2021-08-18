@@ -11,6 +11,7 @@ from picamera import PiCamera
 from twython import Twython
 import random
 import os
+import paho.mqtt.publish as publish
 from catimage import create_image
 
 
@@ -50,6 +51,12 @@ producer_conf = {
 'security.protocol': 'SASL_SSL', 
 'sasl.mechanisms': 'PLAIN'
 }
+
+# MQTT Producer
+mqtt_broker=config.mqtt_broker
+mqtt_port=config.mqtt_port
+mqtt_auth = {'username':config.mqtt_username, 'password':config.mqtt_password}
+mqtt_topic='catfit/foodstation'
 
 # Twitter
 twitter = Twython(
@@ -110,7 +117,8 @@ def do_kafka_produce(event_date, cat_weight, food_weight):
     if cat_weight_min <= cat_weight <= cat_weight_max:
     # Cat is on scale
 
-        producer.produce('debug_log',  value=json.dumps({"event_date": event_date.strftime("%d/%m/%Y %H:%M:%S"), "cat_weight": cat_weight, "food_weight": food_weight }))
+        json_payload=json.dumps({"event_date": event_date.strftime("%d/%m/%Y %H:%M:%S"), "cat_weight": cat_weight, "food_weight": food_weight })
+        producer.produce('debug_log',  value=json_payload  )
         producer.poll(0)
         producer.flush()
 
@@ -122,7 +130,8 @@ def do_kafka_produce(event_date, cat_weight, food_weight):
         producer.poll(0)
         producer.flush()
 
-
+        # MQTT Publish
+        publish.single(topic=mqtt_topic, payload=json_payload, hostname=mqtt_broker, port=mqtt_port, auth=mqtt_auth)
 
 
 def do_update(event_date, cat_weight, food_weight):
